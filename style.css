@@ -1,0 +1,212 @@
+body {
+  font-family: 'Segoe UI', sans-serif;
+  background: linear-gradient(-45deg, #1e1e2f, #2b2b3c, #6cd4ff, #ff8888);
+  background-size: 400% 400%;
+  animation: gradientBG 12s ease infinite;
+  color: #ffffff;
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+}
+
+@keyframes gradientBG {
+  0% {background-position: 0% 50%;}
+  50% {background-position: 100% 50%;}
+  100% {background-position: 0% 50%;}
+}
+
+.container {
+  max-width: 700px;
+  margin: 50px auto;
+  padding: 28px 20px 20px 20px;
+  background: rgba(43, 43, 60, 0.95);
+  border-radius: 22px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+  animation: fadeInUp 1s cubic-bezier(.23,1.01,.32,1) 0.2s both;
+}
+
+@keyframes fadeInUp {
+  0% { opacity: 0; transform: translateY(40px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+h1 {
+  text-align: center;
+  color: #6cd4ff;
+  letter-spacing: 1px;
+  margin-bottom: 18px;
+  font-size: 2.2em;
+  text-shadow: 0 2px 12px #1e1e2f88;
+}
+
+#chat-box {
+  height: 400px;
+  overflow-y: auto;
+  background: rgba(26, 26, 43, 0.95);
+  padding: 18px 12px;
+  border-radius: 14px;
+  margin-bottom: 15px;
+  box-shadow: 0 2px 12px #0002;
+  animation: fadeIn 1.2s cubic-bezier(.23,1.01,.32,1) 0.4s both;
+}
+
+@keyframes fadeIn {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+.message {
+  margin-bottom: 14px;
+  white-space: pre-wrap;
+  padding: 12px 18px;
+  border-radius: 18px;
+  max-width: 80%;
+  word-break: break-word;
+  box-shadow: 0 2px 8px #0001;
+  opacity: 0;
+  transform: scale(0.95) translateY(20px);
+  animation: messageIn 0.5s cubic-bezier(.23,1.01,.32,1) forwards;
+}
+
+@keyframes messageIn {
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.user {
+  text-align: right;
+  color: #a1f2ff;
+  background: linear-gradient(90deg, #6cd4ff 60%, #1e1e2f 100%);
+  margin-left: auto;
+  border-bottom-right-radius: 6px;
+}
+
+.assistant {
+  text-align: left;
+  color: #fff;
+  background: linear-gradient(90deg, #ff8888 0%, #2b2b3c 100%);
+  margin-right: auto;
+  border-bottom-left-radius: 6px;
+}
+
+#user-input, #pdf-file {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 10px;
+  resize: none;
+  margin-bottom: 10px;
+  background: #3b3b4d;
+  color: white;
+  font-size: 17px;
+  box-shadow: 0 2px 8px #0002;
+  transition: box-shadow 0.2s, border 0.2s;
+}
+#user-input:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px #6cd4ff, 0 2px 8px #0002;
+  border: 1.5px solid #6cd4ff;
+}
+
+/* Custom file input */
+#pdf-file {
+  display: none;
+}
+#pdf-file + label {
+  display: inline-block;
+  background: linear-gradient(90deg, #6cd4ff 60%, #ff8888 100%);
+  color: #fff;
+  padding: 10px 22px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1em;
+  margin-bottom: 10px;
+  margin-top: 2px;
+  box-shadow: 0 2px 8px #0002;
+  transition: background 0.2s, transform 0.2s;
+}
+#pdf-file + label:hover {
+  background: linear-gradient(90deg, #ff8888 0%, #6cd4ff 100%);
+  transform: scale(1.04);
+}
+
+button {
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(90deg, #6cd4ff 60%, #ff8888 100%);
+  border: none;
+  border-radius: 10px;
+  font-size: 17px;
+  cursor: pointer;
+  margin-top: 5px;
+  color: #fff;
+  font-weight: 600;
+  box-shadow: 0 2px 8px #0002;
+  transition: background 0.2s, transform 0.2s;
+}
+button:hover {
+  background: linear-gradient(90deg, #ff8888 0%, #6cd4ff 100%);
+  transform: scale(1.04);
+}
+
+.buttons {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 10px;
+}
+.buttons button {
+  flex: 1;
+  background: linear-gradient(90deg, #ff8888 60%, #6cd4ff 100%);
+  color: white;
+  font-weight: 600;
+}
+.buttons button:hover {
+  background: linear-gradient(90deg, #6cd4ff 0%, #ff8888 100%);
+}
+
+@media (max-width: 800px) {
+  .container {
+    max-width: 98vw;
+    padding: 10px 2vw 20px 2vw;
+  }
+  #chat-box {
+    height: 300px;
+    padding: 10px 4px;
+  }
+  h1 {
+    font-size: 1.3em;
+  }
+}
+
+.typing-dot {
+  display: inline-block;
+  font-size: 1.5em;
+  color: #6cd4ff;
+  opacity: 0.7;
+  animation: typing-bounce 1s infinite alternate;
+}
+.typing-dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.typing-dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+@keyframes typing-bounce {
+  0% { transform: translateY(0); opacity: 0.7; }
+  100% { transform: translateY(-7px); opacity: 1; }
+}
+
+.goal-pic {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 3px solid #6cd4ff;
+  box-shadow: 0 2px 12px #1e1e2f88;
+}

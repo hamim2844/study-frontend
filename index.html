@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Your Love - Ruhi</title>
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.10.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.10.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore-compat.js"></script>
+
+  <!-- PDF.js Library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+</head>
+
+<body>
+  <div class="container" id="main-app" style="display: none;">
+    <img class="goal-pic" src="Durefishan-Saleem-e1715333773869.png" alt="Ruhi's Picture" />
+    <h1>Ruhi</h1>
+
+    <!-- PDF Upload -->
+    <label for="pdf-file" class="pdf-label">📄 Upload PDF</label>
+    <input type="file" id="pdf-file" accept="application/pdf" />
+
+    <!-- Chat Display -->
+    <div id="chat-box"></div>
+
+    <!-- User Input -->
+    <textarea id="user-input" placeholder="Type your message here..." rows="3"></textarea>
+    <button id="send-btn">Send</button>
+
+    <!-- Functional Buttons -->
+    <div class="buttons">
+      <button id="save-btn">💾 Save Chat</button>
+      <button id="clear-btn">🗑️ Clear Memory</button>
+      <button id="logout-btn">🚪 Logout</button>
+    </div>
+
+    <!-- About Developer -->
+    <button class="about-btn" onclick="window.location.href='about.html'">👨‍💻 About Developer</button>
+  </div>
+
+  <!-- Load app.js after DOM is fully ready -->
+  <script src="app.js"></script>
+  <script>
+    // Only handle auth state here (not re-initializing Firebase)
+    firebase.auth().onAuthStateChanged(user => {
+      if (user) {
+        document.getElementById('main-app').style.display = 'block';
+
+        // Button bindings (safe after app.js is loaded)
+        document.getElementById("send-btn").addEventListener("click", sendMessage);
+        document.getElementById("clear-btn").addEventListener("click", clearHistory);
+        document.getElementById("save-btn").addEventListener("click", downloadHistory);
+        document.getElementById("logout-btn").addEventListener("click", logoutUser);
+        document.getElementById("pdf-file").addEventListener("change", readPDF);
+      } else {
+        window.location.href = 'login.html';
+      }
+    });
+  </script>
+</body>
+
+</html>
