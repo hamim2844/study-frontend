@@ -17,7 +17,8 @@ const userInput = document.getElementById("user-input");
 let chatHistory = [];
 let currentUser = null;
 
-const apiUrl = "https://study-backend-2brg.onrender.com/";
+const apiUrl = "https://study-backend-2brg.onrender.com/api/chat
+";
 
 
 // Event listener for Enter key
