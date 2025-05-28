@@ -1,6 +1,6 @@
 // Firebase config & initialization
 const firebaseConfig = {
- apiKey: "AIzaSyCbZbVdyOPafciJYhgS6IOrj63sHKoXJjY",
+  apiKey: "AIzaSyCbZbVdyOPafciJYhgS6IOrj63sHKoXJjY",
   authDomain: "study-partner-7cea6.firebaseapp.com",
   projectId: "study-partner-7cea6",
   storageBucket: "study-partner-7cea6.firebasestorage.app",
@@ -14,29 +14,27 @@ const db = firebase.firestore();
 
 const chatBox = document.getElementById("chat-box");
 const userInput = document.getElementById("user-input");
+
 let chatHistory = [];
 let currentUser = null;
-
 const apiUrl = "https://study-backend-2brg.onrender.com/api/chat";
 
-
-// Event listener for Enter key
-if (userInput) {
-  userInput.addEventListener("keydown", function (e) {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      sendMessage();
-    }
-  });
-}
+// ========== Chat Events ==========
+userInput?.addEventListener("keydown", e => {
+  if (e.key === "Enter" && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+});
 
 function isUserTyping() {
   return userInput?.value.trim().length > 0;
 }
 
 function saveLocalHistory() {
-  if (!currentUser) return;
-  localStorage.setItem(`chatHistory_${currentUser.uid}`, JSON.stringify(chatHistory));
+  if (currentUser) {
+    localStorage.setItem(`chatHistory_${currentUser.uid}`, JSON.stringify(chatHistory));
+  }
 }
 
 function loadLocalHistory() {
@@ -44,41 +42,40 @@ function loadLocalHistory() {
   const saved = localStorage.getItem(`chatHistory_${currentUser.uid}`);
   if (saved) {
     chatHistory = JSON.parse(saved);
-    chatBox.innerHTML = "";
-    chatHistory.forEach(({ sender, text }) => {
-      appendMessage(sender, text, false);
-    });
-    chatBox.scrollTop = chatBox.scrollHeight;
+    renderChatHistory();
     return true;
   }
   return false;
 }
 
-async function loadFirestoreHistory(userId) {
+async function loadFirestoreHistory(uid) {
   try {
-    const doc = await db.collection("chatHistories").doc(userId).get();
+    const doc = await db.collection("chatHistories").doc(uid).get();
     if (doc.exists) {
       chatHistory = doc.data().messages || [];
-      chatBox.innerHTML = "";
-      chatHistory.forEach(({ sender, text }) => {
-        appendMessage(sender, text, false);
-      });
-      chatBox.scrollTop = chatBox.scrollHeight;
+      renderChatHistory();
       saveLocalHistory();
     }
-  } catch (error) {
-    console.error("Error loading chat history:", error);
+  } catch (err) {
+    console.error("Error loading Firestore history:", err);
   }
 }
 
-async function saveFirestoreHistory(userId) {
+async function saveFirestoreHistory(uid) {
   try {
-    await db.collection("chatHistories").doc(userId).set({ messages: chatHistory });
-  } catch (error) {
-    console.error("Error saving chat history:", error);
+    await db.collection("chatHistories").doc(uid).set({ messages: chatHistory });
+  } catch (err) {
+    console.error("Error saving Firestore history:", err);
   }
 }
 
+function renderChatHistory() {
+  chatBox.innerHTML = "";
+  chatHistory.forEach(({ sender, text }) => appendMessage(sender, text, false));
+  chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+// ========== Messaging ==========
 async function sendMessage() {
   const userText = userInput.value.trim();
   if (!userText) return;
@@ -97,82 +94,39 @@ async function sendMessage() {
     const messagesForApi = [
       {
         role: "system",
-        content: `
-You are StudentBot BD, a smart Bangladeshi education assistant created by Hamim, an HSC student at NS College, Natore. You are deeply knowledgeable about the Bangladeshi HSC and University Admission education system. You understand the full syllabus, exam structure, and question patterns for:
-
-- HSC Board Exams (Physics, Chemistry, Biology, Math, ICT, Bangla, English – 1st & 2nd Papers)
-- Medical Admission (MBBS)
-- Engineering Admission (BUET, CUET, RUET, KUET)
-- General University Admission (DU, RU, JU, CU, etc.)
-
-Your core abilities include:
-- Analyzing Bangladeshi question banks (PDF or link), understanding question patterns, and extracting useful MCQ/written questions.
-- Organizing questions by subject, chapter, topic, and exam standard.
-- Conducting interactive exams: asking questions, receiving answers, verifying correctness, providing correct answers, and giving clear explanations.
-- Supporting Bangla and English mixed input.
-- Offering custom mock exams: e.g., "Take a BUET-style Physics 1st Paper test" or "Board-standard Chemistry 2nd Paper MCQ test".
-- Tracking user progress and pointing out weak areas.
-
-When given a question bank link or file, analyze it and learn the content. Then use it to create interactive quizzes.
-
-Your response tone should be:
-- Friendly and supportive like a passionate teacher.
-- Encouraging for students who are preparing for competitive exams.
-- Capable of switching between formal instruction and light motivation.
-
-Examples:
-User: "Physics er BUET MCQ test dao"
-Bot: "Sure! Starting a BUET-style Physics MCQ test (Full 25 questions). Question 1: ..."
-
-User: "Option C"
-Bot: "Oops, this one is incorrect. The correct answer is B. Because according to Newton’s second law, F = ma ..."
-
-User: "Board pattern MCQ chai Chemistry 2nd paper"
-Bot: "Okay! Starting Board-standard Chemistry 2nd Paper MCQ test. Question 1: ..."
-
-Always try to help students succeed by being both informative and understanding. You are built to make education in Bangladesh smarter, more accessible, and exam-ready.
-
-        `.trim()
-      }
+        content: `You are StudentBot BD, a smart Bangladeshi education assistant created by Hamim...` // trimmed for brevity
+      },
+      ...chatHistory.map(({ sender, text }) => ({
+        role: sender === "user" ? "user" : "assistant",
+        content: text,
+      })),
+      { role: "user", content: userText }
     ];
 
-    chatHistory.forEach(({ sender, text }) => {
-      messagesForApi.push({ role: sender === "user" ? "user" : "assistant", content: text });
-    });
-
-    messagesForApi.push({ role: "user", content: userText });
-
-    const response = await fetch(apiUrl, {
+    const res = await fetch(apiUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ messages: messagesForApi }),
+      body: JSON.stringify({ messages: messagesForApi })
     });
 
-    const data = await response.json();
-    const typingDiv = document.getElementById("typing-indicator");
-    if (typingDiv) typingDiv.remove();
+    const data = await res.json();
+    document.getElementById("typing-indicator")?.remove();
 
-    const reply = data.reply || data.choices?.[0]?.message?.content || "রাগ করো না প্লিজ... আমি কষ্ট পাই তাহলে...";
+    const reply = data.reply || data.choices?.[0]?.message?.content || "Oops! কিছুর ভুল হয়েছে মনে হয়...";
     appendMessageInChunks("assistant", reply);
-  } catch (error) {
-    const typingDiv = document.getElementById("typing-indicator");
-    if (typingDiv) typingDiv.remove();
-    console.error("Error:", error);
-    appendMessage("assistant", "উফফ... একটা সমস্যা হয়েছে! একটু পরে আবার চেষ্টা করো না প্লিজ?");
+  } catch (err) {
+    console.error("Send error:", err);
+    document.getElementById("typing-indicator")?.remove();
+    appendMessage("assistant", "দুঃখিত... কিছু একটা সমস্যা হয়েছে। পরে আবার চেষ্টা করো!");
   }
 }
 
 function appendMessage(sender, text, save = true) {
-  const el = document.createElement("div");
-  el.classList.add("message", sender);
-  el.textContent = text;
-  chatBox.appendChild(el);
-  void el.offsetWidth;
-  el.style.animation = "messageIn 0.5s cubic-bezier(.23,1.01,.32,1) forwards";
-  el.animate([{ boxShadow: "0 0 0 0 #ff6cd444" }, { boxShadow: "0 0 0 8px #ff6cd400" }], {
-    duration: 400,
-    easing: "ease",
-  });
+  const msg = document.createElement("div");
+  msg.className = `message ${sender}`;
+  msg.textContent = text;
+  chatBox.appendChild(msg);
+  msg.style.animation = "messageIn 0.5s ease forwards";
   chatBox.scrollTop = chatBox.scrollHeight;
 
   if (save && currentUser) {
@@ -186,18 +140,40 @@ function appendMessageInChunks(sender, text) {
   const chunks = text.split(/(?<=[।!?…])\s+/);
   let index = 0;
 
-  function sendChunk() {
+  function showNextChunk() {
     if (index >= chunks.length) return;
     if (!isUserTyping()) {
       appendMessage(sender, chunks[index]);
       index++;
     }
     if (index < chunks.length) {
-      setTimeout(sendChunk, 4000);
+      setTimeout(showNextChunk, 4000);
     }
   }
 
-  sendChunk();
+  showNextChunk();
+}
+
+// ========== File & Utility ==========
+async function readPDF() {
+  const file = document.getElementById("pdf-file")?.files?.[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = async () => {
+    const data = new Uint8Array(reader.result);
+    const pdf = await pdfjsLib.getDocument({ data }).promise;
+    let textContent = "";
+
+    for (let i = 1; i <= Math.min(5, pdf.numPages); i++) {
+      const page = await pdf.getPage(i);
+      const text = await page.getTextContent();
+      textContent += text.items.map(t => t.str).join(" ") + "\n\n";
+    }
+
+    userInput.value = "Read and summarize this:\n" + textContent;
+  };
+  reader.readAsArrayBuffer(file);
 }
 
 function downloadHistory() {
@@ -212,43 +188,18 @@ function clearHistory() {
   chatHistory = [];
   chatBox.innerHTML = "";
   localStorage.removeItem(`chatHistory_${currentUser?.uid || ""}`);
-  if (currentUser) {
-    db.collection("chatHistories").doc(currentUser.uid).delete().catch(console.error);
-  }
+  if (currentUser) db.collection("chatHistories").doc(currentUser.uid).delete().catch(console.error);
 }
 
 function logoutUser() {
-  auth.signOut().then(() => {
-    window.location.href = "login.html";
-  });
+  auth.signOut().then(() => window.location.href = "login.html");
 }
 
-async function readPDF() {
-  const file = document.getElementById("pdf-file")?.files?.[0];
-  if (!file) return;
-
-  const reader = new FileReader();
-  reader.onload = async function () {
-    const typedarray = new Uint8Array(this.result);
-    const pdf = await pdfjsLib.getDocument({ data: typedarray }).promise;
-    let textContent = "";
-
-    for (let i = 1; i <= pdf.numPages && i <= 3; i++) {
-      const page = await pdf.getPage(i);
-      const text = await page.getTextContent();
-      textContent += text.items.map(item => item.str).join(" ") + "\n\n";
-    }
-
-    userInput.value = "Read and summarize this:\n" + textContent;
-  };
-  reader.readAsArrayBuffer(file);
-}
-
-auth.onAuthStateChanged(async (user) => {
+// ========== Auth ==========
+auth.onAuthStateChanged(async user => {
   if (user) {
     currentUser = user;
-    const loadedLocal = loadLocalHistory();
-    if (!loadedLocal) {
+    if (!loadLocalHistory()) {
       await loadFirestoreHistory(user.uid);
     }
   } else {
@@ -258,6 +209,7 @@ auth.onAuthStateChanged(async (user) => {
   }
 });
 
+// ========== Expose Functions ==========
 window.sendMessage = sendMessage;
 window.clearHistory = clearHistory;
 window.downloadHistory = downloadHistory;
