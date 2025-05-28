@@ -3,7 +3,7 @@ const firebaseConfig = {
   apiKey: "AIzaSyCbZbVdyOPafciJYhgS6IOrj63sHKoXJjY",
   authDomain: "study-partner-7cea6.firebaseapp.com",
   projectId: "study-partner-7cea6",
-  storageBucket: "study-partner-7cea6.firebasestorage.app",
+  storageBucket: "study-partner-7cea6.appspot.com",
   messagingSenderId: "960256994195",
   appId: "1:960256994195:web:462643e9ce609f729f1666",
 };
@@ -17,7 +17,9 @@ const userInput = document.getElementById("user-input");
 
 let chatHistory = [];
 let currentUser = null;
-const apiUrl = "https://study-backend-2brg.onrender.com/api/chat";
+
+// ✅ Fixed endpoint URL
+const apiUrl = "https://study-backend-2brg.onrender.com/api/ask";
 
 // ========== Chat Events ==========
 userInput?.addEventListener("keydown", e => {
@@ -94,7 +96,7 @@ async function sendMessage() {
     const messagesForApi = [
       {
         role: "system",
-        content: `You are StudentBot BD, a smart Bangladeshi education assistant created by Hamim...` // trimmed for brevity
+        content: `You are StudentBot BD, a smart Bangladeshi education assistant created by Hamim...`
       },
       ...chatHistory.map(({ sender, text }) => ({
         role: sender === "user" ? "user" : "assistant",
